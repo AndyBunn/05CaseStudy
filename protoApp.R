@@ -87,7 +87,7 @@ server <- function(input, output, session) {
       summary() %>%
         ggplot(aes(age, rate, colour = sex)) +
         geom_line(na.rm = TRUE) +
-        labs(y = "Injuries per 10,000 people")
+        labs(y = "Injuries per 10,000 people", x = "Age")
     }
   }, res = 96)
 
