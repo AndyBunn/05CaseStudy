@@ -4,6 +4,7 @@ library(ggplot2)
 library(forcats)
 library(vroom)
 library(shiny)
+library(DT)
 
 # check to see if the data exist in the environment
 if (!exists("injuries")) {
@@ -50,18 +51,25 @@ ui <- fluidPage(
   h1("Summarize"),
   p("Here we present simply summary information on the location, body part, and
     diagnosis of selected injuries. To simplify the tables, you can
-    truncate the information shown."),
+    truncate the information shown and lump all other entries
+    into \"Sum of All Other Categories\""),
   fluidRow(
-    column(1),
-    # user input to select n
-    column(4, sliderInput(inputId = "nRows", label = "Number of unique rows",
-                          min = 2,max = 20,step = 1,value = 5))
+    column(4, DT::dataTableOutput("diag")),
+    column(4, DT::dataTableOutput("body_part")),
+    column(4, DT::dataTableOutput("location"))
   ),
   fluidRow(
-    # output from the server as tables
-    column(4, tableOutput("diag")),
-    column(4, tableOutput("body_part")),
-    column(4, tableOutput("location"))
+    # user input to select n
+    column(4, sliderInput(inputId = "nRowsDiag",
+                          label = "Number of unique diagnoses",
+                          min = 2,max = 20,step = 1,value = 5)),
+    column(4, sliderInput(inputId = "nRowsBodyPart",
+                          label = "Number of unique body parts",
+                          min = 2,max = 20,step = 1,value = 5)),
+    column(4, sliderInput(inputId = "nRowsLocations",
+                          label = "Number of unique locations",
+                          min = 2,max = 20,step = 1,value = 5))
+
   ),
   hr(),
   h1("Plot by sex and age"),
@@ -109,25 +117,34 @@ server <- function(input, output, session) {
   selectedNarratives <- reactive(selected() %>% pull(narrative))
 
   # output table for diag
-  output$diag <- renderTable({
-    diagTable <- count_top(df = selected(), var = diag, n = input$nRows - 1)
+  output$diag <- DT::renderDataTable({
+    diagTable <- count_top(df = selected(), var = diag, n = input$nRowsDiag)
     colnames(diagTable) <- c("Diagnosis","Number")
-    diagTable
+    diagTable %>% datatable(options = list(dom = 't',ordering = F)) %>%
+      formatStyle(
+      0, target = "row",
+      fontWeight = styleEqual(input$nRowsDiag+1, "bold"))
 
   }, width = "100%")
 
-  # output table for body part
-  output$body_part <- renderTable({
-    bodyTable <- count_top(df = selected(), var = body_part, n = input$nRows - 1)
+    # output table for body part
+  output$body_part <- DT::renderDataTable({
+    bodyTable <- count_top(df = selected(), var = body_part, n = input$nRowsBodyPart)
     colnames(bodyTable) <- c("Body part injured","Number")
-    bodyTable
+    bodyTable %>% datatable(options = list(dom = 't',ordering = F)) %>%
+      formatStyle(
+        0, target = "row",
+        fontWeight = styleEqual(input$nRowsBodyPart+1, "bold"))
   }, width = "100%")
 
   # output table for location
-  output$location <- renderTable({
-    locationTable <- count_top(df = selected(), var = location, n = input$nRows - 1)
+  output$location <- DT::renderDataTable({
+    locationTable <- count_top(df = selected(), var = location, n = input$nRowsLocations)
     colnames(locationTable) <- c("Location of injury","Number")
-    locationTable
+    locationTable %>% datatable(options = list(dom = 't',ordering = F)) %>%
+      formatStyle(
+        0, target = "row",
+        fontWeight = styleEqual(input$nRowsLocations+1, "bold"))
 
   }, width = "100%")
 
