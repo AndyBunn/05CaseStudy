@@ -22,7 +22,8 @@ count_top <- function(df, var, n) {
     mutate({{ var }} := fct_lump(fct_infreq({{ var }}), {{ n }},
                                  other_level = "Sum of All Other Categories")) %>%
     group_by({{ var }}) %>%
-    summarise(n = as.integer(sum(weight)))
+    summarise(nObs = n(),
+              nScaled = as.integer(sum(weight)))
 }
 
 
@@ -50,7 +51,9 @@ ui <- fluidPage(
   hr(),
   h1("Summarize"),
   p("Here we present simply summary information on the location, body part, and
-    diagnosis of selected injuries. To simplify the tables, you can
+    diagnosis of selected injuries. The number of observations in the database is
+    given by Obs (n) and number scaked Pop (n) column can be interpreted as
+    estimated total injuries across the whole US.   To simplify the tables, you can
     truncate the information shown and lump all other entries
     into \"Sum of All Other Categories\""),
   fluidRow(
@@ -124,7 +127,7 @@ server <- function(input, output, session) {
   # output table for diag
   output$diag <- DT::renderDataTable({
     diagTable <- count_top(df = selected(), var = diag, n = input$nRowsDiag)
-    colnames(diagTable) <- c("Diagnosis","Number")
+    colnames(diagTable) <- c("Diagnosis","Obs (n)", "Pop (n)")
     diagTable %>%
       datatable(options = list(dom = 't',
                                ordering = FALSE,
@@ -139,7 +142,7 @@ server <- function(input, output, session) {
   # output table for body part
   output$body_part <- DT::renderDataTable({
     bodyTable <- count_top(df = selected(), var = body_part, n = input$nRowsBodyPart)
-    colnames(bodyTable) <- c("Body part injured","Number")
+    colnames(bodyTable) <- c("Body part injured","Obs (n)", "Pop (n)")
     bodyTable %>%
       datatable(options = list(dom = 't',
                                ordering = FALSE,
@@ -153,7 +156,7 @@ server <- function(input, output, session) {
   # output table for location
   output$location <- DT::renderDataTable({
     locationTable <- count_top(df = selected(), var = location, n = input$nRowsLocations)
-    colnames(locationTable) <- c("Location of injury","Number")
+    colnames(locationTable) <- c("Location of injury","Obs (n)", "Pop (n)")
     locationTable %>%
       datatable(options = list(dom = 't',
                                ordering = FALSE,
