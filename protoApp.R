@@ -59,6 +59,11 @@ ui <- fluidPage(
     column(4, DT::dataTableOutput("location"))
   ),
   fluidRow(
+    column(4, hr()),
+    column(4, hr()),
+    column(4, hr())
+  ),
+  fluidRow(
     # user input to select n
     column(4, sliderInput(inputId = "nRowsDiag",
                           label = "Number of unique diagnoses",
@@ -120,18 +125,26 @@ server <- function(input, output, session) {
   output$diag <- DT::renderDataTable({
     diagTable <- count_top(df = selected(), var = diag, n = input$nRowsDiag)
     colnames(diagTable) <- c("Diagnosis","Number")
-    diagTable %>% datatable(options = list(dom = 't',ordering = F)) %>%
+    diagTable %>%
+      datatable(options = list(dom = 't',
+                               ordering = FALSE,
+                               paging =TRUE,
+                               pageLength = input$nRowsDiag+1)) %>%
       formatStyle(
-      0, target = "row",
-      fontWeight = styleEqual(input$nRowsDiag+1, "bold"))
+        0, target = "row",
+        fontWeight = styleEqual(input$nRowsDiag+1, "bold"))
 
   }, width = "100%")
 
-    # output table for body part
+  # output table for body part
   output$body_part <- DT::renderDataTable({
     bodyTable <- count_top(df = selected(), var = body_part, n = input$nRowsBodyPart)
     colnames(bodyTable) <- c("Body part injured","Number")
-    bodyTable %>% datatable(options = list(dom = 't',ordering = F)) %>%
+    bodyTable %>%
+      datatable(options = list(dom = 't',
+                               ordering = FALSE,
+                               paging =TRUE,
+                               pageLength = input$nRowsBodyPart+1)) %>%
       formatStyle(
         0, target = "row",
         fontWeight = styleEqual(input$nRowsBodyPart+1, "bold"))
@@ -141,7 +154,11 @@ server <- function(input, output, session) {
   output$location <- DT::renderDataTable({
     locationTable <- count_top(df = selected(), var = location, n = input$nRowsLocations)
     colnames(locationTable) <- c("Location of injury","Number")
-    locationTable %>% datatable(options = list(dom = 't',ordering = F)) %>%
+    locationTable %>%
+      datatable(options = list(dom = 't',
+                               ordering = FALSE,
+                               paging =TRUE,
+                               pageLength = input$nRowsLocations+1)) %>%
       formatStyle(
         0, target = "row",
         fontWeight = styleEqual(input$nRowsLocations+1, "bold"))
